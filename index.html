@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificador de Resultado - Genially</title>
+  <!-- Biblioteca Tesseract.js para leitura de imagem (OCR) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #666;
+      font-size: 14px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .custom-file-upload {
+      border: 2px dashed #007bff;
+      display: inline-block;
+      padding: 12px 20px;
+      cursor: pointer;
+      border-radius: 8px;
+      color: #007bff;
+      font-weight: bold;
+      transition: background 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 15px;
+    }
+    .custom-file-upload:hover {
+      background-color: #e9f2ff;
+    }
+    .preview-img {
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 15px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+      font-weight: bold;
+      text-align: left;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      text-align: center;
+    }
+    .code-container {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 12px;
+      max-height: 250px;
+      overflow-y: auto;
+      white-space: pre;
+      margin-top: 10px;
+      text-align: left;
+    }
+    .btn-copy {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .btn-copy:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Validação de Desafio</h2>
+  <p>Envie a imagem do resultado gerado pelo Genially para liberar o código JavaScript.</p>
+  
+  <label for="imageInput" class="custom-file-upload">
+    🖼️ Selecionar Imagem (PNG/JPG)
+  </label>
+  <input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg" />
+
+  <img id="imagePreview" class="preview-img" alt="Pré-visualização da imagem" />
+
+  <div id="statusMessage" class="result"></div>
+</div>
+
+<!-- Código que será liberado apenas com 7 acertos -->
+<template id="codigoLiberado">const numeroSenha = document.querySelector('.parametro-senha__texto');
+let tamanhoSenha = 12;
+numeroSenha.textContent = tamanhoSenha;
+const letrasMaiusculas = 'ABCDEFGHIJKLMNOPQRSTUVXYWZ';
+const letrasMinusculas = 'abcdefghijklmnopqrstuvxywz';
+const numeros = '0123456789';
+const simbolos = '!@%*?';
+const botoes = document.querySelectorAll('.parametro-senha__botao');
+const campoSenha = document.querySelector('#campo-senha');
+const checkbox = document.querySelectorAll('.checkbox');
+const forcaSenha = document.querySelector('.forca');
+
+botoes[0].onclick = diminuiTamanho;
+botoes[1].onclick = aumentaTamanho;
+
+function diminuiTamanho() {
+    if (tamanhoSenha > 1) {
+        tamanhoSenha--;
+    }
+    numeroSenha.textContent = tamanhoSenha;
+    geraSenha();
+}
+function aumentaTamanho() {
+    if (tamanhoSenha < 20) {
+        tamanhoSenha++;
+    }
+    numeroSenha.textContent = tamanhoSenha;
+    geraSenha();
+}
+
+for (i = 0; i < checkbox.length; i++) {
+    checkbox[i].onclick = geraSenha;
+}
+
+geraSenha();
+
+function geraSenha() {
+    let alfabeto = '';
+    if (checkbox[0].checked) {
+        alfabeto = alfabeto + letrasMaiusculas;
+    }
+    if (checkbox[1].checked) {
+        alfabeto = alfabeto + letrasMinusculas;
+    }
+    if (checkbox[2].checked) {
+        alfabeto = alfabeto + numeros;
+    }
+    if (checkbox[3].checked) {
+        alfabeto = alfabeto + simbolos;
+    }
+    let senha = '';
+    for (let i = 0; i < tamanhoSenha; i++) {
+        let numeroAleatorio = Math.random() * alfabeto.length;
+        numeroAleatorio = Math.floor(numeroAleatorio);
+        senha = senha + alfabeto[numeroAleatorio];
+    }
+    campoSenha.value = senha;
+    classificaSenha(alfabeto.length);
+}
+
+function classificaSenha(tamanhoAlfabeto){
+    let entropia = tamanhoSenha * Math.log2(tamanhoAlfabeto);
+    console.log(entropia);
+    forcaSenha.classList.remove('fraca','media','forte');
+    if (entropia > 57){
+        forcaSenha.classList.add('forte');
+    } else if (entropia > 35 && entropia < 57 ) {
+        forcaSenha.classList.add('media');
+    } else if (entropia <= 35){
+        forcaSenha.classList.add('fraca');
+    }
+    const valorEntropia = document.querySelector('.entropia');
+    valorEntropia.textContent = "Um computador pode levar até " + Math.floor(2**entropia/(100e6*60*60*24)) + " dias para descobrir essa senha.";
+}</template>
+
+<script>
+  document.getElementById('imageInput').addEventListener('change', async function (e) {
+    const file = e.target.files[0];
+    const messageDiv = document.getElementById('statusMessage');
+    const previewImg = document.getElementById('imagePreview');
+    const scriptCode = document.getElementById('codigoLiberado').innerHTML;
+
+    if (!file) return;
+
+    previewImg.src = URL.createObjectURL(file);
+    previewImg.style.display = 'inline-block';
+
+    messageDiv.style.display = 'block';
+    messageDiv.className = 'result';
+    messageDiv.style.textAlign = 'center';
+    messageDiv.innerText = 'Lendo e analisando a imagem... Aguarde alguns segundos.';
+
+    try {
+      const { data: { text } } = await Tesseract.recognize(file, 'por');
+
+      // 1. Procura especificamente o padrão do número imediatamente antes da palavra 'Acertos'
+      const matchAcertos = text.match(/(\d+)\s*\n?\s*Acertos/i);
+
+      // 2. Procura se existem erros registrados na imagem (ex: 3 Erros)
+      const matchErros = text.match(/(\d+)\s*\n?\s*Erros/i);
+
+      let acertos = matchAcertos ? parseInt(matchAcertos[1], 10) : null;
+      let erros = matchErros ? parseInt(matchErros[1], 10) : 0;
+
+      // Validação estrita: O total de acertos deve ser exatamente 7 E o número de erros deve ser zero
+      if (acertos === 7 && erros === 0) {
+        messageDiv.className = 'result success';
+        messageDiv.style.textAlign = 'left';
+        messageDiv.innerHTML = `
+          🎉 Parabéns! Você acertou todas as 7 questões!
+          <p style="margin: 5px 0; color: #155724;">Copie o código JS liberado abaixo:</p>
+          <div class="code-container" id="codeText">${scriptCode}</div>
+          <button class="btn-copy" onclick="copiarCodigo()">📋 Copiar Código</button>
+        `;
+      } else {
+        messageDiv.className = 'result error';
+        const pontuacaoExibida = acertos !== null ? `${acertos}/7` : "inferior a 7/7";
+        messageDiv.innerHTML = `Você obteve ${pontuacaoExibida} acertos.<br><br>Por favor, responda novamente ao Genially até obter 7 acertos e envie a nova imagem.`;
+      }
+    } catch (err) {
+      messageDiv.className = 'result error';
+      messageDiv.innerText = 'Erro ao processar a imagem. Tente novamente.';
+    }
+  });
+
+  function copiarCodigo() {
+    const codeText = document.getElementById('codeText').innerText;
+    navigator.clipboard.writeText(codeText).then(() => {
+      alert('Código copiado com sucesso!');
+    });
+  }
+</script>
+
+</body>
+</html>
