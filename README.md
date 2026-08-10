@@ -1,0 +1,1 @@
+# resultado_gerador_senha_js
