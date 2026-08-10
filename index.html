@@ -32,8 +32,36 @@
       margin-bottom: 10px;
     }
     p {
-      color: #666;
+      color: #555;
       font-size: 14px;
+      line-height: 1.5;
+    }
+    .intro-box {
+      background-color: #eef6ff;
+      border-left: 4px solid #007bff;
+      padding: 15px;
+      border-radius: 6px;
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .intro-box h3 {
+      margin-top: 0;
+      color: #0056b3;
+      font-size: 16px;
+    }
+    .btn-genially {
+      display: inline-block;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 8px;
+      transition: background 0.3s;
+    }
+    .btn-genially:hover {
+      background-color: #0056b3;
     }
     input[type="file"] {
       display: none;
@@ -49,7 +77,7 @@
       transition: background 0.3s;
       width: 100%;
       box-sizing: border-box;
-      margin-top: 15px;
+      margin-top: 10px;
     }
     .custom-file-upload:hover {
       background-color: #e9f2ff;
@@ -113,7 +141,19 @@
 
 <div class="card">
   <h2>Validação de Desafio</h2>
-  <p>Envie a imagem do resultado gerado pelo Genially para liberar o código JavaScript.</p>
+
+  <!-- Bloco de Introdução e Link do Genially -->
+  <div class="intro-box">
+    <h3>📌 Instruções da Atividade</h3>
+    <p>
+      Para liberar o código JavaScript do Gerador de Senhas, você precisa resolver o desafio interativo e obter <strong>7/7 acertos</strong>.
+    </p>
+    <a href="https://view.genially.com/6a79ad25e29ad174061df143" target="_blank" class="btn-genially">
+      🚀 Acesse o link do desafio
+    </a>
+  </div>
+
+  <p>Após responder tudo, tire uma foto/print da tela de resultados do Genially e envie a imagem abaixo:</p>
   
   <label for="imageInput" class="custom-file-upload">
     🖼️ Selecionar Imagem (PNG/JPG)
@@ -221,16 +261,16 @@ function classificaSenha(tamanhoAlfabeto){
     try {
       const { data: { text } } = await Tesseract.recognize(file, 'por');
 
-      // 1. Procura especificamente o padrão do número imediatamente antes da palavra 'Acertos'
+      // Procura o padrão do número imediatamente antes de 'Acertos'
       const matchAcertos = text.match(/(\d+)\s*\n?\s*Acertos/i);
 
-      // 2. Procura se existem erros registrados na imagem (ex: 3 Erros)
+      // Procura se existem erros registrados na imagem
       const matchErros = text.match(/(\d+)\s*\n?\s*Erros/i);
 
       let acertos = matchAcertos ? parseInt(matchAcertos[1], 10) : null;
       let erros = matchErros ? parseInt(matchErros[1], 10) : 0;
 
-      // Validação estrita: O total de acertos deve ser exatamente 7 E o número de erros deve ser zero
+      // Validação estrita: exatamente 7 acertos E zero erros
       if (acertos === 7 && erros === 0) {
         messageDiv.className = 'result success';
         messageDiv.style.textAlign = 'left';
@@ -243,7 +283,7 @@ function classificaSenha(tamanhoAlfabeto){
       } else {
         messageDiv.className = 'result error';
         const pontuacaoExibida = acertos !== null ? `${acertos}/7` : "inferior a 7/7";
-        messageDiv.innerHTML = `Você obteve ${pontuacaoExibida} acertos.<br><br>Por favor, responda novamente ao Genially até obter 7 acertos e envie a nova imagem.`;
+        messageDiv.innerHTML = `Você obteve ${pontuacaoExibida} acertos[cite: 1].<br><br>Por favor, responda novamente ao Genially até obter 7 acertos e envie a nova imagem.`;
       }
     } catch (err) {
       messageDiv.className = 'result error';
