@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Verificador de Resultado - Genially</title>
   <!-- Biblioteca Tesseract.js para leitura de imagem (OCR) -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -139,34 +139,35 @@
 </head>
 <body>
 
-<div class="card">
-  <h2>Validação de Desafio</h2>
+  <div class="card">
+    <h2>Validação de Desafio</h2>
 
-  <!-- Bloco de Introdução e Link do Genially -->
-  <div class="intro-box">
-    <h3>📌 Instruções da Atividade</h3>
-    <p>
-      Para liberar o código JavaScript do Gerador de Senhas, você precisa resolver o desafio interativo e obter <strong>7/7 acertos</strong>.
-    </p>
-    <a href="https://view.genially.com/6a79ad25e29ad174061df143" target="_blank" class="btn-genially">
-      🚀 Acesse o link do desafio
-    </a>
+    <!-- Bloco de Introdução e Link do Genially -->
+    <div class="intro-box">
+      <h3>📌 Instruções da Atividade</h3>
+      <p>
+        Para liberar o código JavaScript do Gerador de Senhas, você precisa resolver o desafio interativo e obter <strong>7/7 acertos</strong>.
+      </p>
+      <a href="https://view.genially.com/6a79ad25e29ad174061df143" target="_blank" class="btn-genially">
+        🚀 Acesse o link do desafio
+      </a>
+    </div>
+
+    <p>Após responder tudo, tire uma foto/print da tela de resultados do Genially e envie a imagem abaixo:</p>
+
+    <label for="imageInput" class="custom-file-upload">
+      🖼️ Selecionar Imagem (PNG/JPG)
+    </label>
+    <input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg" />
+
+    <img id="imagePreview" class="preview-img" alt="Pré-visualização da imagem" />
+
+    <div id="statusMessage" class="result"></div>
   </div>
 
-  <p>Após responder tudo, tire uma foto/print da tela de resultados do Genially e envie a imagem abaixo:</p>
-  
-  <label for="imageInput" class="custom-file-upload">
-    🖼️ Selecionar Imagem (PNG/JPG)
-  </label>
-  <input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg" />
-
-  <img id="imagePreview" class="preview-img" alt="Pré-visualização da imagem" />
-
-  <div id="statusMessage" class="result"></div>
-</div>
-
-<!-- Código que será liberado apenas com 7 acertos -->
-<template id="codigoLiberado">const numeroSenha = document.querySelector('.parametro-senha__texto');
+  <!-- Código que será liberado apenas com 7 acertos -->
+  <template id="codigoLiberado">
+const numeroSenha = document.querySelector('.parametro-senha__texto');
 let tamanhoSenha = 12;
 numeroSenha.textContent = tamanhoSenha;
 const letrasMaiusculas = 'ABCDEFGHIJKLMNOPQRSTUVXYWZ';
@@ -241,63 +242,110 @@ function classificaSenha(tamanhoAlfabeto){
     valorEntropia.textContent = "Um computador pode levar até " + Math.floor(2**entropia/(100e6*60*60*24)) + " dias para descobrir essa senha.";
 }</template>
 
-<script>
-  document.getElementById('imageInput').addEventListener('change', async function (e) {
-    const file = e.target.files[0];
-    const messageDiv = document.getElementById('statusMessage');
-    const previewImg = document.getElementById('imagePreview');
-    const scriptCode = document.getElementById('codigoLiberado').innerHTML;
+  <script>
+    // Função principal: processa a imagem enviada, usa Tesseract para OCR e libera o código se 7/7 e 0 erros
+    document.getElementById('imageInput').addEventListener('change', async function (e) {
+      const file = e.target.files[0];
+      const messageDiv = document.getElementById('statusMessage');
+      const previewImg = document.getElementById('imagePreview');
+      const scriptCode = document.getElementById('codigoLiberado').innerHTML.trim();
 
-    if (!file) return;
+      if (!file) return;
 
-    previewImg.src = URL.createObjectURL(file);
-    previewImg.style.display = 'inline-block';
+      // Exibe pré-visualização
+      previewImg.src = URL.createObjectURL(file);
+      previewImg.style.display = 'inline-block';
 
-    messageDiv.style.display = 'block';
-    messageDiv.className = 'result';
-    messageDiv.style.textAlign = 'center';
-    messageDiv.innerText = 'Lendo e analisando a imagem... Aguarde alguns segundos.';
+      // Mensagem inicial
+      messageDiv.style.display = 'block';
+      messageDiv.className = 'result';
+      messageDiv.style.textAlign = 'center';
+      messageDiv.innerText = 'Lendo e analisando a imagem... Aguarde alguns segundos.';
 
-    try {
-      const { data: { text } } = await Tesseract.recognize(file, 'por');
+      try {
+        // Executa OCR (idioma português)
+        const { data: { text } } = await Tesseract.recognize(file, 'por');
 
-      // Procura o padrão do número imediatamente antes de 'Acertos'
-      const matchAcertos = text.match(/(\d+)\s*\n?\s*Acertos/i);
+        // Para depuração local: descomente a linha abaixo para ver o texto retornado pelo OCR no console
+        // console.log('OCR result:', text);
 
-      // Procura se existem erros registrados na imagem
-      const matchErros = text.match(/(\d+)\s*\n?\s*Erros/i);
+        // Normaliza o texto para facilitar as buscas
+        const normalized = text
+          .replace(/\r/g, ' ')
+          .replace(/[:]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
 
-      let acertos = matchAcertos ? parseInt(matchAcertos[1], 10) : null;
-      let erros = matchErros ? parseInt(matchErros[1], 10) : 0;
+        // Tenta vários padrões comuns: "7/7", "Acertos 7", "Acertos: 7", "7 Acertos"
+        let acertos = null;
+        let erros = null;
+        let m;
 
-      // Validação estrita: exatamente 7 acertos E zero erros
-      if (acertos === 7 && erros === 0) {
-        messageDiv.className = 'result success';
-        messageDiv.style.textAlign = 'left';
-        messageDiv.innerHTML = `
-          🎉 Parabéns! Você acertou todas as 7 questões!
-          <p style="margin: 5px 0; color: #155724;">Copie o código JS liberado abaixo:</p>
-          <div class="code-container" id="codeText">${scriptCode}</div>
-          <button class="btn-copy" onclick="copiarCodigo()">📋 Copiar Código</button>
-        `;
-      } else {
+        // Padrão 7/7 ou 7 / 7 (prioriza o primeiro número)
+        if ((m = normalized.match(/(\d+)\s*\/\s*(\d+)(?:\s*acertos)?/i))) {
+          acertos = parseInt(m[1], 10);
+        }
+        // "Acertos 7" ou "Acertos 7/7"
+        else if ((m = normalized.match(/acertos\s*(\d+)/i))) {
+          acertos = parseInt(m[1], 10);
+        }
+        // "7 Acertos"
+        else if ((m = normalized.match(/(\d+)\s*acertos/i))) {
+          acertos = parseInt(m[1], 10);
+        }
+        // Caso o OCR retorne apenas "7/7" sem a palavra acertos
+        else if ((m = normalized.match(/(\d+)\s*\/\s*(\d+)/))) {
+          acertos = parseInt(m[1], 10);
+        }
+
+        // Padrões para erros: "Erros 0", "Erros: 0", "0 Erros"
+        if ((m = normalized.match(/erros\s*(\d+)/i))) {
+          erros = parseInt(m[1], 10);
+        } else if ((m = normalized.match(/(\d+)\s*erros/i))) {
+          erros = parseInt(m[1], 10);
+        } else {
+          // se não encontrar, deixa como null (não assume 0 automaticamente)
+          erros = null;
+        }
+
+        // Validação: exatamente 7 acertos e zero erros (se erro não detectado, considera 0 apenas se houver "0" explícito)
+        const tem7Acertos = acertos === 7;
+        const temZeroErros = (erros === 0) || (erros === null && /erros\s*[:\s]*0/i.test(normalized));
+
+        if (tem7Acertos && temZeroErros) {
+          messageDiv.className = 'result success';
+          messageDiv.style.textAlign = 'left';
+          // monta o HTML sem injetar o código diretamente; cria o container e depois define textContent
+          messageDiv.innerHTML = `
+            🎉 Parabéns! Você acertou todas as 7 questões!
+            <p style="margin: 5px 0; color: #155724;">Copie o código JS liberado abaixo:</p>
+            <div class="code-container" id="codeText"></div>
+            <button class="btn-copy" id="btnCopy">📋 Copiar Código</button>
+          `;
+          // coloca o código como texto (preserva caracteres especiais)
+          const codeDiv = document.getElementById('codeText');
+          codeDiv.textContent = scriptCode;
+
+          // configura o botão de cópia
+          document.getElementById('btnCopy').addEventListener('click', function () {
+            navigator.clipboard.writeText(scriptCode).then(() => {
+              alert('Código copiado com sucesso!');
+            }).catch(() => {
+              alert('Não foi possível copiar automaticamente. Selecione e copie manualmente.');
+            });
+          });
+        } else {
+          messageDiv.className = 'result error';
+          const pontuacaoExibida = acertos !== null ? `${acertos}/7` : "inferior a 7/7";
+          messageDiv.innerHTML = `Você obteve ${pontuacaoExibida} acertos.<br><br>Por favor, responda novamente ao Genially até obter 7 acertos e envie a nova imagem.`;
+        }
+      } catch (err) {
+        console.error(err);
         messageDiv.className = 'result error';
-        const pontuacaoExibida = acertos !== null ? `${acertos}/7` : "inferior a 7/7";
-        messageDiv.innerHTML = `Você obteve ${pontuacaoExibida} acertos[cite: 1].<br><br>Por favor, responda novamente ao Genially até obter 7 acertos e envie a nova imagem.`;
+        messageDiv.innerText = 'Erro ao processar a imagem. Tente novamente.';
       }
-    } catch (err) {
-      messageDiv.className = 'result error';
-      messageDiv.innerText = 'Erro ao processar a imagem. Tente novamente.';
-    }
-  });
-
-  function copiarCodigo() {
-    const codeText = document.getElementById('codeText').innerText;
-    navigator.clipboard.writeText(codeText).then(() => {
-      alert('Código copiado com sucesso!');
     });
-  }
-</script>
+  </script>
 
 </body>
 </html>
